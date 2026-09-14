@@ -261,6 +261,11 @@
     animation: cardIn .5s ease forwards;
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   }
+  a.card{
+    text-decoration:none;
+    color:inherit;
+    cursor:pointer;
+  }
   @keyframes cardIn{
     to{ opacity:1; transform:none; }
   }
@@ -573,7 +578,7 @@
     const ticket = p.gmvValue / p.itemsValue;
     const delay = (idx % 10) * 0.05;
     return `
-      <div class="card" style="animation-delay:${delay}s">
+      <a class="card" style="animation-delay:${delay}s" href="${p.link}" target="_blank" rel="noopener noreferrer">
         <span class="${rankClass}">#${p.rank}</span>
         ${demandTag(p.rank)}
         <div class="thumb-wrap"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
@@ -590,14 +595,14 @@
           </div>
           <div class="ticket">Ticket médio: <b>R$${ticket.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
         </div>
-      </div>`;
+      </a>`;
   }
 
   function emergingCardHtml(p, idx){
     const ticket = p.gmvValue / p.itemsValue;
     const delay = (idx % 10) * 0.05;
     return `
-      <div class="card emerging-card" style="animation-delay:${delay}s">
+      <a class="card emerging-card" style="animation-delay:${delay}s" href="${p.link}" target="_blank" rel="noopener noreferrer">
         <span class="rank">#${p.rank}</span>
         <span class="growth-badge">🚀 ${p.growthRate}</span>
         <div class="thumb-wrap"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
@@ -618,7 +623,7 @@
           <div class="ticket">Ticket médio: <b>R$${ticket.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
           <div class="test-cta">⚡ Ainda dá tempo de pegar a onda — teste na sua live</div>
         </div>
-      </div>`;
+      </a>`;
   }
 
   function renderEmerging(){
