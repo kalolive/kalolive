@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalolive — Radar de Produtos</title>
+<style>
+  :root{
+    --bg: #05060f;
+    --panel: rgba(255,255,255,.04);
+    --panel-solid: #10101c;
+    --text: #eef0ff;
+    --muted: #8d8fb3;
+    --accent: #00f0ff;
+    --accent2: #ff2ec4;
+    --accent3: #7c4dff;
+    --border: rgba(255,255,255,.09);
+    --chip: rgba(255,255,255,.06);
+    --good: #33ffb0;
+  }
+  *{box-sizing:border-box;}
+  html,body{ background:var(--bg); }
+  body{
+    color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 20px 16px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* animated tech background */
+  .bg-fx{
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(1100px 600px at 15% -10%, rgba(0,240,255,.14), transparent 60%),
+      radial-gradient(1000px 700px at 100% 10%, rgba(255,46,196,.13), transparent 55%),
+      radial-gradient(900px 600px at 50% 120%, rgba(124,77,255,.16), transparent 55%),
+      var(--bg);
+  }
+  .bg-grid{
+    position: fixed;
+    inset: -2px;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(0,240,255,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,.06) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at 50% 0%, black, transparent 75%);
+    animation: driftGrid 22s linear infinite;
+  }
+  @keyframes driftGrid{
+    from{ background-position: 0 0, 0 0; }
+    to{ background-position: 42px 84px, 42px 84px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .bg-grid{ animation: none; }
+  }
+
+  header{
+    padding: 22px 22px 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: linear-gradient(155deg, rgba(0,240,255,.07), rgba(255,46,196,.05) 45%, rgba(124,77,255,.08));
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .brand-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    position:relative;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: .5px;
+  }
+  .brand .bolt{
+    filter: drop-shadow(0 0 10px rgba(0,240,255,.8));
+  }
+  .brand .k{
+    background: linear-gradient(90deg, var(--accent), var(--accent3) 55%, var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    animation: shine 6s ease-in-out infinite;
+  }
+  @keyframes shine{
+    0%,100%{ background-position: 0% center; }
+    50%{ background-position: 100% center; }
+  }
+  .live-pill{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding: 6px 12px 6px 10px;
+    border-radius: 999px;
+    background: rgba(255,46,196,.12);
+    border: 1px solid rgba(255,46,196,.4);
+    font-size: .74rem;
+    font-weight:700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #ffb3ea;
+  }
+  .dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    background: var(--accent2);
+    box-shadow: 0 0 0 rgba(255,46,196,.6);
+    animation: pulse 1.6s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(255,46,196,.55); }
+    70%{ box-shadow: 0 0 0 8px rgba(255,46,196,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(255,46,196,0); }
+  }
+  header .sub{
+    margin: 10px 0 0;
+    opacity:.8;
+    font-size:.9rem;
+    max-width: 680px;
+    position:relative;
+  }
+
+  .stat-strip{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+    position: relative;
+  }
+  .stat-box{
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.03);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+  .stat-box .num{
+    font-size: 1.3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stat-box .lbl{
+    font-size: .68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-top: 2px;
+  }
+
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:14px;
+    position:relative;
+  }
+  .badge{
+    background: rgba(255,255,255,.05);
+    border:1px solid var(--border);
+    padding:5px 12px;
+    border-radius:999px;
+    font-size:.75rem;
+    color: var(--muted);
+  }
+  .badge b{ color: var(--accent); font-weight:600; }
+
+  nav.tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding: 4px 2px 14px;
+    margin-bottom: 4px;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.03);
+    color:var(--text);
+    font-size:.85rem;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    transition: all .18s ease;
+  }
+  .tab:hover{ border-color: var(--accent); color:#fff; }
+  .tab.active{
+    background: linear-gradient(120deg, var(--accent), var(--accent3));
+    color:#04121a;
+    border-color:transparent;
+    box-shadow: 0 0 18px rgba(0,240,255,.35);
+  }
+
+  .search-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .search-row input{
+    flex:1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.03);
+    color: var(--text);
+    font-size:.92rem;
+  }
+  .search-row input::placeholder{ color: var(--muted); }
+  .search-row input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .section-title{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin: 26px 2px 12px;
+    font-size:1.05rem;
+    font-weight:700;
+  }
+  .section-title span.count{
+    font-weight:500;
+    font-size:.78rem;
+    color:var(--muted);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap:14px;
+  }
+  .card{
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transform: translateY(14px);
+    animation: cardIn .5s ease forwards;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  @keyframes cardIn{
+    to{ opacity:1; transform:none; }
+  }
+  .card:hover{
+    transform: translateY(-4px);
+    border-color: rgba(0,240,255,.5);
+    box-shadow: 0 12px 30px rgba(0,240,255,.12), 0 0 0 1px rgba(0,240,255,.15) inset;
+  }
+  .rank{
+    position:absolute;
+    top:8px; left:8px;
+    background: rgba(5,6,15,.75);
+    color:#fff;
+    font-size:.72rem;
+    font-weight:800;
+    padding: 3px 9px;
+    border-radius: 999px;
+    z-index:2;
+    border: 1px solid rgba(255,255,255,.15);
+  }
+  .rank.top3{
+    background: linear-gradient(120deg, var(--accent2), #ffb020);
+    color:#1a0a12;
+    border-color: transparent;
+    box-shadow: 0 0 14px rgba(255,46,196,.5);
+  }
+  .tag{
+    position:absolute;
+    top:8px; right:8px;
+    z-index:2;
+    font-size:.62rem;
+    font-weight:700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    backdrop-filter: blur(3px);
+  }
+  .tag.hot{ background: rgba(255,46,196,.18); color:#ffb3ea; border:1px solid rgba(255,46,196,.4); }
+  .tag.good{ background: rgba(51,255,176,.14); color: var(--good); border:1px solid rgba(51,255,176,.35); }
+  .tag.emerging{ background: rgba(0,240,255,.14); color: var(--accent); border:1px solid rgba(0,240,255,.35); }
+
+  .thumb-wrap{
+    background:#fff;
+    aspect-ratio: 228 / 171;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .thumb-wrap img{
+    width:100%;
+    height:100%;
+    object-fit: contain;
+  }
+  .card-body{
+    padding: 12px 13px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    flex:1;
+  }
+  .card-body .name{
+    font-size:.84rem;
+    font-weight:600;
+    line-height:1.3;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    min-height: 2.6em;
+  }
+  .price{
+    font-size:.76rem;
+    color:var(--muted);
+  }
+
+  .bar-track{
+    height:5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.07);
+    overflow:hidden;
+    margin-top: 2px;
+  }
+  .bar-fill{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s cubic-bezier(.2,.9,.25,1);
+  }
+
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-top:4px;
+    padding-top:8px;
+    border-top:1px dashed var(--border);
+  }
+  .gmv{
+    font-weight:800;
+    font-size:.98rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .gmv-lbl{ font-size:.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .items{
+    font-size:.72rem;
+    color:var(--text);
+    background:var(--chip);
+    padding:3px 9px;
+    border-radius:999px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ticket{
+    font-size:.68rem;
+    color:var(--muted);
+    margin-top: 2px;
+  }
+  .ticket b{ color: var(--text); }
+
+  footer{
+    margin-top: 44px;
+    padding: 18px 4px 4px;
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    font-size:.78rem;
+    line-height:1.65;
+  }
+  .empty{
+    color:var(--muted);
+    padding: 40px 0;
+    text-align:center;
+    font-size:.9rem;
+  }
+
+  /* Teste na Live — cards de produtos emergentes */
+  .emerging-intro{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(124,77,255,.35);
+    background: linear-gradient(120deg, rgba(124,77,255,.1), rgba(0,240,255,.06));
+    margin-bottom: 18px;
+    font-size:.84rem;
+    color: var(--text);
+    line-height:1.5;
+  }
+  .emerging-intro .ic{ font-size:1.3rem; flex:0 0 auto; }
+  .emerging-intro b{ color: var(--accent3); }
+  .card.emerging-card{
+    border-color: rgba(124,77,255,.45);
+    background: linear-gradient(160deg, rgba(124,77,255,.09), rgba(255,255,255,.03));
+  }
+  .card.emerging-card:hover{
+    transform: translateY(-4px);
+    border-color: rgba(124,77,255,.8);
+    box-shadow: 0 12px 30px rgba(124,77,255,.2), 0 0 0 1px rgba(124,77,255,.22) inset;
+  }
+  .growth-badge{
+    position:absolute;
+    top:8px; right:8px;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:3px;
+    font-size:.66rem;
+    font-weight:800;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--accent3), var(--accent));
+    color:#04081a;
+    box-shadow: 0 0 14px rgba(124,77,255,.55);
+    animation: growthPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes growthPulse{
+    0%,100%{ box-shadow: 0 0 10px rgba(124,77,255,.4); }
+    50%{ box-shadow: 0 0 18px rgba(124,77,255,.75); }
+  }
+  .growth-row{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-top:2px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: rgba(124,77,255,.12);
+    border: 1px solid rgba(124,77,255,.3);
+  }
+  .growth-row .arrow{ font-size:1.05rem; }
+  .growth-row .txt{ font-size:.7rem; color:var(--muted); }
+  .growth-row .val{ color: var(--accent3); font-size:.92rem; font-weight:800; }
+  .test-cta{
+    font-size:.68rem;
+    color: var(--accent);
+    margin-top:2px;
+    font-weight:600;
+  }
+</style>
+</head>
+<body>
+
+
+<div class="bg-fx"></div>
+<div class="bg-grid"></div>
+
+<header>
+  <div class="brand-row">
+    <div class="brand"><span class="bolt">⚡</span><span class="k">Kalolive</span></div>
+    <div class="live-pill"><span class="dot"></span> Live Data</div>
+  </div>
+  <p class="sub">Radar diário dos produtos mais vendidos no TikTok Shop BR com receita vinda de <b style="color:#fff">Live</b> — pra quem faz live já entrar sabendo o que vender e o quanto vale a pena.</p>
+
+  <div class="stat-strip">
+    <div class="stat-box"><div class="num" id="statGmv">R$0</div><div class="lbl">GMV total (Live)</div></div>
+    <div class="stat-box"><div class="num" id="statProducts">0</div><div class="lbl">Produtos rastreados</div></div>
+    <div class="stat-box"><div class="num" id="statCats">0</div><div class="lbl">Categorias</div></div>
+    <div class="stat-box"><div class="num" id="statItems">0</div><div class="lbl">Itens vendidos</div></div>
+  </div>
+
+  <div class="meta-row">
+    <span class="badge">📅 Período: <b id="periodLabel"></b></span>
+    <span class="badge">🕒 Atualizado: <b id="updateLabel"></b></span>
+    <span class="badge">📡 Fonte: Kalodata</span>
+    <span class="badge">🎥 Filtro: Live</span>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+
+<div class="search-row">
+  <input type="text" id="searchInput" placeholder="Buscar produto pelo nome...">
+</div>
+
+<div id="content"></div>
+
+<footer>
+  Dados coletados manualmente no Kalodata (kalodata.com) via exportação de pôster de ranking, filtrados por "Fonte de receita (conteúdo): Live" e por categoria, últimos 30 dias corridos a partir da data de atualização.
+  Os valores de GMV (receita) e itens vendidos refletem apenas as vendas atribuídas a transmissões ao vivo no período — não é o total de vendas do produto na plataforma.
+  A barra de cada card mostra o peso do produto dentro da própria categoria (GMV relativo ao líder) e o "ticket médio" é a receita dividida pelos itens vendidos — use os dois pra bater o olho e avaliar se vale a pena entrar com o produto na sua live.
+</footer>
+
+<script src="data.js"></script>
+<script>
+  document.getElementById('periodLabel').textContent = PERIOD;
+  document.getElementById('updateLabel').textContent = LAST_UPDATE;
+
+  const tabsEl = document.getElementById('tabs');
+  const contentEl = document.getElementById('content');
+  const searchEl = document.getElementById('searchInput');
+
+  let activeId = 'all';
+
+  function fmtMoneyShort(v){
+    if(v >= 1000000) return 'R$' + (v/1000000).toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' M';
+    if(v >= 1000) return 'R$' + (v/1000).toLocaleString('pt-BR', {maximumFractionDigits:0}) + ' mil';
+    return 'R$' + v.toLocaleString('pt-BR');
+  }
+  function fmtInt(v){ return Math.round(v).toLocaleString('pt-BR'); }
+
+  function countUp(el, target, formatter, duration){
+    const start = 0;
+    const t0 = performance.now();
+    function tick(now){
+      const p = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = start + (target - start) * eased;
+      el.textContent = formatter(val);
+      if(p < 1) requestAnimationFrame(tick);
+      else el.textContent = formatter(target);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // aggregate stats
+  const allProducts = CATEGORIES.flatMap(c => c.products);
+  const totalGmv = allProducts.reduce((s,p) => s + p.gmvValue, 0);
+  const totalItems = allProducts.reduce((s,p) => s + p.itemsValue, 0);
+  countUp(document.getElementById('statGmv'), totalGmv, fmtMoneyShort, 1100);
+  countUp(document.getElementById('statProducts'), allProducts.length, fmtInt, 900);
+  countUp(document.getElementById('statCats'), CATEGORIES.length, fmtInt, 700);
+  countUp(document.getElementById('statItems'), totalItems, fmtInt, 1300);
+
+  function makeTab(id, label, emoji){
+    const b = document.createElement('button');
+    b.className = 'tab' + (id === activeId ? ' active' : '');
+    b.textContent = (emoji ? emoji + ' ' : '') + label;
+    b.dataset.id = id;
+    b.addEventListener('click', () => {
+      activeId = id;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.id === id));
+      render();
+    });
+    return b;
+  }
+
+  tabsEl.appendChild(makeTab('all', 'Tudo', '📋'));
+  tabsEl.appendChild(makeTab('emerging', 'Teste na Live', '🚀'));
+  CATEGORIES.forEach(cat => tabsEl.appendChild(makeTab(cat.id, cat.label, cat.emoji)));
+
+  function demandTag(rank){
+    if(rank <= 3) return '<span class="tag hot">🔥 Alta demanda</span>';
+    if(rank <= 6) return '<span class="tag good">📈 Bom desempenho</span>';
+    return '<span class="tag emerging">⚡ Emergente</span>';
+  }
+
+  function cardHtml(p, catMaxGmv, idx){
+    const rankClass = p.rank <= 3 ? 'rank top3' : 'rank';
+    const pct = Math.max(4, Math.round((p.gmvValue / catMaxGmv) * 100));
+    const ticket = p.gmvValue / p.itemsValue;
+    const delay = (idx % 10) * 0.05;
+    return `
+      <div class="card" style="animation-delay:${delay}s">
+        <span class="${rankClass}">#${p.rank}</span>
+        ${demandTag(p.rank)}
+        <div class="thumb-wrap"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+        <div class="card-body">
+          <div class="name">${p.name}</div>
+          <div class="price">${p.price}</div>
+          <div class="bar-track"><div class="bar-fill" data-pct="${pct}"></div></div>
+          <div class="stat-row">
+            <div>
+              <div class="gmv-lbl">GMV (Live)</div>
+              <div class="gmv">${p.gmv}</div>
+            </div>
+            <span class="items">${p.items} vendidos</span>
+          </div>
+          <div class="ticket">Ticket médio: <b>R$${ticket.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
+        </div>
+      </div>`;
+  }
+
+  function emergingCardHtml(p, idx){
+    const ticket = p.gmvValue / p.itemsValue;
+    const delay = (idx % 10) * 0.05;
+    return `
+      <div class="card emerging-card" style="animation-delay:${delay}s">
+        <span class="rank">#${p.rank}</span>
+        <span class="growth-badge">🚀 ${p.growthRate}</span>
+        <div class="thumb-wrap"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+        <div class="card-body">
+          <div class="name">${p.name}</div>
+          <div class="price">${p.price}</div>
+          <div class="growth-row">
+            <span class="arrow">📈</span>
+            <span class="txt">Crescimento da receita <span class="val">${p.growthRate}</span></span>
+          </div>
+          <div class="stat-row">
+            <div>
+              <div class="gmv-lbl">GMV (Live)</div>
+              <div class="gmv">${p.gmv}</div>
+            </div>
+            <span class="items">${p.items} vendidos</span>
+          </div>
+          <div class="ticket">Ticket médio: <b>R$${ticket.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
+          <div class="test-cta">⚡ Ainda dá tempo de pegar a onda — teste na sua live</div>
+        </div>
+      </div>`;
+  }
+
+  function renderEmerging(){
+    const q = searchEl.value.trim().toLowerCase();
+    contentEl.innerHTML = '';
+    const products = EMERGING.filter(p => !q || p.name.toLowerCase().includes(q));
+
+    const intro = document.createElement('div');
+    intro.className = 'emerging-intro';
+    intro.innerHTML = `<span class="ic">🧪</span><span>Produtos que <b>ainda não bombaram em GMV total</b>, mas estão com a receita disparando (crescimento &gt;999,9% no período) — a curva tá subindo agora. Testar esses na live antes de todo mundo é a chance de <b>subir junto com o produto</b>, antes de ele ficar saturado.</span>`;
+    contentEl.appendChild(intro);
+
+    if(products.length === 0){
+      contentEl.innerHTML += '<div class="empty">Nenhum produto encontrado para essa busca.</div>';
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      grid.innerHTML = products.map((p, i) => emergingCardHtml(p, i)).join('');
+      contentEl.appendChild(grid);
+    }
+
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(el => {
+          el.style.width = el.dataset.pct + '%';
+        });
+      }, 60);
+    });
+  }
+
+  function render(){
+    if(activeId === 'emerging'){ renderEmerging(); return; }
+    const q = searchEl.value.trim().toLowerCase();
+    contentEl.innerHTML = '';
+    const cats = activeId === 'all' ? CATEGORIES : CATEGORIES.filter(c => c.id === activeId);
+    let totalShown = 0;
+    let cardIdx = 0;
+
+    cats.forEach(cat => {
+      const products = cat.products.filter(p => !q || p.name.toLowerCase().includes(q));
+      if(products.length === 0) return;
+      totalShown += products.length;
+      const catMaxGmv = Math.max(...cat.products.map(p => p.gmvValue));
+
+      const section = document.createElement('div');
+      section.innerHTML = `<div class="section-title">${cat.emoji} ${cat.label} <span class="count">${products.length} produtos</span></div>`;
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      grid.innerHTML = products.map(p => cardHtml(p, catMaxGmv, cardIdx++)).join('');
+      section.appendChild(grid);
+      contentEl.appendChild(section);
+    });
+
+    if(totalShown === 0){
+      contentEl.innerHTML = '<div class="empty">Nenhum produto encontrado para essa busca.</div>';
+    }
+
+    // animate bars in after paint
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(el => {
+          el.style.width = el.dataset.pct + '%';
+        });
+      }, 60);
+    });
+  }
+
+  searchEl.addEventListener('input', render);
+  render();
+</script>
+
+</body>
+</html>
